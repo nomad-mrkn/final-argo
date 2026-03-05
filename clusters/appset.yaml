@@ -10,7 +10,7 @@ spec:
   goTemplateOptions: ["missingkey=error"]
   generators:
   - git:
-      repoURL: 'https://github.com/nomad-mrkn/0zargo.git'
+      repoURL: 'https://github.com/nomad-mrkn/final-argo'
       revision: HEAD
       directories:
       - path: clusters/test*
@@ -25,7 +25,7 @@ spec:
         server: 'https://kubernetes.default.svc'
       project: default
       source:
-        repoURL: 'https://github.com/nomad-mrkn/0zargo.git'
+        repoURL: 'https://github.com/nomad-mrkn/final-argo'
         targetRevision: HEAD
         path: '{{.path.path}}/infr-apps'
         directory:
