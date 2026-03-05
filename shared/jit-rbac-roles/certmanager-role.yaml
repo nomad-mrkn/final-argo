@@ -47,11 +47,11 @@ rules:
   
   - apiGroups: ["certificates.k8s.io"]
     resources: ["signers"]
-    verbs: ["sign"]
+    verbs: ["sign", "delete"]
   
   - apiGroups: ["cert-manager.io"]
     resources: ["signers"]
-    verbs: ["approve"]
+    verbs: ["approve", "delete"]
   
   - apiGroups: ["gateway.networking.k8s.io"]
     resources:
@@ -59,17 +59,17 @@ rules:
       - gateways/finalizers
       - httproutes
       - httproutes/finalizers
-    verbs: ["get", "list", "watch", "update", "patch"]
+    verbs: ["get", "list", "watch", "update", "patch", "delete"]
   
   - apiGroups: ["networking.k8s.io"]
     resources:
       - ingresses
       - ingresses/finalizers
-    verbs: ["get", "list", "watch", "update", "patch"]
+    verbs: ["get", "list", "watch", "update", "patch", "delete"]
   
   - apiGroups: ["route.openshift.io"]
     resources: ["routes/custom-host"]
-    verbs: ["create"]
+    verbs: ["create", "delete"]
   
   - apiGroups: ["admissionregistration.k8s.io"]
     resources:
@@ -96,25 +96,27 @@ rules:
   
   - apiGroups: [""]
     resources: ["namespaces"]
-    verbs: ["create", "get", "list", "watch"]
+    verbs: ["create", "get", "list", "watch", "delete"]
   
   - apiGroups: [""]
     resources: ["serviceaccounts/token"]
-    verbs: ["create"]
+    verbs: ["create", "delete"]
   
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources:
       - clusterroles
       - clusterrolebindings
+      - roles
+      - rolebindings
     verbs: ["get", "list", "create", "update", "patch", "delete", "bind", "escalate"]
   
   - apiGroups: ["authorization.k8s.io"]
     resources: ["subjectaccessreviews"]
-    verbs: ["create"]
+    verbs: ["create", "delete"]
   
   - apiGroups: ["coordination.k8s.io"]
     resources: ["leases"]
-    verbs: ["create", "update", "patch", "get", "list", "watch"]
+    verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
 
   - apiGroups: ["batch"]
     resources: ["jobs"]
