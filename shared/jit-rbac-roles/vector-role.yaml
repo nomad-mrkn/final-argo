@@ -1,0 +1,76 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argocd-manager-vector
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookFailed
+    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-options: Prune=false
+  labels:
+    app.kubernetes.io/part-of: argo-jit-rbac
+    jit-rbac/app: k8s-spb2-backend1-vector
+rules:
+  - apiGroups: ["apps"]
+    resources:
+      - daemonsets
+      - deployments
+      - statefulsets
+      - replicasets
+    verbs: ["create", "update", "patch", "get", "list", "watch"]
+  
+  - apiGroups: [""]
+    resources:
+      - serviceaccounts
+      - services
+      - configmaps
+      - secrets
+    verbs: ["create", "update", "patch", "get", "list", "watch"]
+  
+  # RBAC rights for ArgoCD kubectl auth reconcile (namespace-scoped only)
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+    verbs: ["get", "list", "create", "update", "patch"]
+  
+  - apiGroups: ["operator.victoriametrics.com"]
+    resources:
+      - vmpodscrapes
+    verbs: ["create", "update", "patch", "get", "list", "watch"]
+  
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - ingresses
+    verbs: ["create", "update", "patch", "get", "list", "watch"]
+  
+  - apiGroups: ["policy"]
+    resources:
+      - poddisruptionbudgets
+    verbs: ["create", "update", "patch", "get", "list", "watch"]
+  
+  - apiGroups: ["autoscaling"]
+    resources:
+      - horizontalpodautoscalers
+    verbs: ["create", "update", "patch", "get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argocd-manager-vector
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-options: Prune=false
+  labels:
+    app.kubernetes.io/part-of: argo-jit-rbac
+    jit-rbac/app: k8s-spb2-backend1-vector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argocd-manager-vector
+subjects:
+  - kind: ServiceAccount
+    name: argocd-manager
+    namespace: kube-system
+
