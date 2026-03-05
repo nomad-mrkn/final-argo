@@ -104,9 +104,9 @@ rules:
   
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources:
-      - roles
-      - rolebindings
-    verbs: ["get", "list", "create", "update", "patch"]
+      - clusterroles
+      - clusterrolebindings
+    verbs: ["get", "list", "create", "update", "patch", "delete", "bind", "escalate"]
   
   - apiGroups: ["authorization.k8s.io"]
     resources: ["subjectaccessreviews"]
