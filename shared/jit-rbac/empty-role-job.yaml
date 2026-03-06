@@ -4,7 +4,7 @@ metadata:
   name: PLACEHOLDER-empty-role
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookFailed
+    argocd.argoproj.io/hook-delete-policy: HookFailed,BeforeHookCreation
     argocd.argoproj.io/sync-wave: "100"
   labels:
     app.kubernetes.io/part-of: argo-jit-rbac
