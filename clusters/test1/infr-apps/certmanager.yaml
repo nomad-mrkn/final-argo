@@ -12,13 +12,13 @@ spec:
     syncOptions:
     - CreateNamespace=true
     - SkipDryRunOnMissingResource=true
-    - RespectIgnoreDifferences=true
   project: default
   ignoreDifferences:
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
       name: argocd-manager-certmanager
       jsonPointers:
+        - /rules
         - /metadata/labels/jit-rbac~1sync-status
         - /metadata/annotations
     - group: rbac.authorization.k8s.io
@@ -93,19 +93,37 @@ spec:
               - op: replace
                 path: /subjects/0/namespace
                 value: cert-manager
+          # Deprecated patch for old "mark-completed" job.
+          # Keep commented for rollback/reference.
+          # - target:
+          #     kind: Job
+          #     name: PLACEHOLDER-mark-completed
+          #   patch: |-
+          #     - op: replace
+          #       path: /metadata/name
+          #       value: k8s-spb2-backend1-certmanager-mark-completed
+          #     - op: replace
+          #       path: /spec/template/spec/serviceAccountName
+          #       value: jit-rbac-marker-k8s-spb2-backend1-certmanager
+          #     - op: replace
+          #       path: /spec/template/spec/containers/0/env/0/value
+          #       value: k8s-spb2-backend1-certmanager
           - target:
               kind: Job
-              name: PLACEHOLDER-mark-completed
+              name: PLACEHOLDER-empty-role
             patch: |-
               - op: replace
                 path: /metadata/name
-                value: k8s-spb2-backend1-certmanager-mark-completed
+                value: k8s-spb2-backend1-certmanager-empty-role
               - op: replace
                 path: /spec/template/spec/serviceAccountName
                 value: jit-rbac-marker-k8s-spb2-backend1-certmanager
               - op: replace
                 path: /spec/template/spec/containers/0/env/0/value
                 value: k8s-spb2-backend1-certmanager
+              - op: replace
+                path: /spec/template/spec/containers/0/env/1/value
+                value: argocd-manager-certmanager
     # Source 3: Helm chart
     - repoURL: 'https://github.com/nomad-mrkn/charts.git'
       targetRevision: HEAD
