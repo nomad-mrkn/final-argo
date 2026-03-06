@@ -7,7 +7,7 @@ metadata:
     argocd.argoproj.io/hook: PostSync,PreDelete
     argocd.argoproj.io/hook-delete-policy: HookFailed
     argocd.argoproj.io/sync-wave: "98"
-    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    argocd.argoproj.io/sync-options: Prune=false
   labels:
     app.kubernetes.io/part-of: argo-jit-rbac
     jit-rbac/app: PLACEHOLDER
@@ -20,7 +20,7 @@ metadata:
     argocd.argoproj.io/hook: PostSync,PreDelete
     argocd.argoproj.io/hook-delete-policy: HookFailed
     argocd.argoproj.io/sync-wave: "98"
-    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    argocd.argoproj.io/sync-options: Prune=false
   labels:
     app.kubernetes.io/part-of: argo-jit-rbac
     jit-rbac/app: PLACEHOLDER
@@ -40,7 +40,7 @@ metadata:
     argocd.argoproj.io/hook: PostSync,PreDelete
     argocd.argoproj.io/hook-delete-policy: HookFailed
     argocd.argoproj.io/sync-wave: "98"
-    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+    argocd.argoproj.io/sync-options: Prune=false
   labels:
     app.kubernetes.io/part-of: argo-jit-rbac
     jit-rbac/app: PLACEHOLDER
