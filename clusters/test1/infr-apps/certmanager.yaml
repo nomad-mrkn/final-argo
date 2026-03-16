@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: k8s-spb2-backend1-certmanager
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
@@ -14,13 +12,13 @@ spec:
     syncOptions:
     - CreateNamespace=true
     - SkipDryRunOnMissingResource=true
+    - RespectIgnoreDifferences=true
   project: default
   ignoreDifferences:
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
       name: argocd-manager-certmanager
       jsonPointers:
-        - /rules
         - /metadata/labels/jit-rbac~1sync-status
         - /metadata/annotations
     - group: rbac.authorization.k8s.io
@@ -57,7 +55,7 @@ spec:
       path: shared/jit-rbac-roles
       directory:
         include: certmanager-role.yaml
-    # Source 2: JIT hook resources and jobs
+    # Source 2: Job wave 99
     - repoURL: 'https://github.com/nomad-mrkn/final-argo.git'
       targetRevision: HEAD
       path: shared/jit-rbac
@@ -108,22 +106,6 @@ spec:
               - op: replace
                 path: /spec/template/spec/containers/0/env/0/value
                 value: k8s-spb2-backend1-certmanager
-          - target:
-              kind: Job
-              name: PLACEHOLDER-refill-role
-            patch: |-
-              - op: replace
-                path: /metadata/name
-                value: k8s-spb2-backend1-certmanager-refill-role
-              - op: replace
-                path: /spec/template/spec/serviceAccountName
-                value: jit-rbac-marker-k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /spec/template/spec/containers/0/env/0/value
-                value: k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /spec/template/spec/containers/0/env/1/value
-                value: argocd-manager-certmanager
     # Source 3: Helm chart
     - repoURL: 'https://github.com/nomad-mrkn/charts.git'
       targetRevision: HEAD
