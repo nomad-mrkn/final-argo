@@ -4,8 +4,6 @@ kind: ServiceAccount
 metadata:
   name: jit-rbac-marker-PLACEHOLDER
   annotations:
-    argocd.argoproj.io/hook: PostSync,PreDelete
-    argocd.argoproj.io/hook-delete-policy: HookFailed,BeforeHookCreation
     argocd.argoproj.io/sync-wave: "98"
     argocd.argoproj.io/sync-options: Prune=false
   labels:
@@ -17,8 +15,6 @@ kind: ClusterRole
 metadata:
   name: jit-rbac-marker-PLACEHOLDER
   annotations:
-    argocd.argoproj.io/hook: PostSync,PreDelete
-    argocd.argoproj.io/hook-delete-policy: HookFailed,BeforeHookCreation
     argocd.argoproj.io/sync-wave: "98"
     argocd.argoproj.io/sync-options: Prune=false
   labels:
@@ -37,8 +33,6 @@ kind: ClusterRoleBinding
 metadata:
   name: jit-rbac-marker-PLACEHOLDER
   annotations:
-    argocd.argoproj.io/hook: PostSync,PreDelete
-    argocd.argoproj.io/hook-delete-policy: HookFailed,BeforeHookCreation
     argocd.argoproj.io/sync-wave: "98"
     argocd.argoproj.io/sync-options: Prune=false
   labels:
@@ -65,7 +59,7 @@ metadata:
     app.kubernetes.io/part-of: argo-jit-rbac
     jit-rbac/app: PLACEHOLDER
 spec:
-  ttlSecondsAfterFinished: 60
+  ttlSecondsAfterFinished: 600
   backoffLimit: 3
   template:
     metadata:
