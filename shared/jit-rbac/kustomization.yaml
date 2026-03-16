@@ -3,4 +3,3 @@ kind: Kustomization
 resources:
   - mark-completed-job.yaml
   - refill-role-job.yaml
-  - empty-role-job.yaml
