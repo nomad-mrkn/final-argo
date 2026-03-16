@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: k8s-spb2-backend1-certmanager
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
@@ -57,7 +55,7 @@ spec:
       path: shared/jit-rbac-roles
       directory:
         include: certmanager-role.yaml
-    # Source 2: JIT hooks
+    # Source 2: Job wave 99
     - repoURL: 'https://github.com/nomad-mrkn/final-argo.git'
       targetRevision: HEAD
       path: shared/jit-rbac
@@ -103,114 +101,11 @@ spec:
                 path: /metadata/name
                 value: k8s-spb2-backend1-certmanager-mark-completed
               - op: replace
-                path: /spec/template/spec/containers/0/env/0/value
-                value: k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /spec/template/spec/containers/0/env/1/value
-                value: argocd-manager-certmanager
-              - op: replace
-                path: /spec/template/spec/containers/0/env/2/value
+                path: /spec/template/spec/serviceAccountName
                 value: jit-rbac-marker-k8s-spb2-backend1-certmanager
               - op: replace
-                path: /spec/template/spec/containers/0/env/3/value
-                value: cert-manager
-          - target:
-              kind: Job
-              name: PLACEHOLDER-refill-role
-            patch: |-
-              - op: replace
-                path: /metadata/name
-                value: k8s-spb2-backend1-certmanager-refill-role
-              - op: replace
                 path: /spec/template/spec/containers/0/env/0/value
                 value: k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /spec/template/spec/containers/0/env/1/value
-                value: argocd-manager-certmanager
-              - op: replace
-                path: /spec/template/spec/containers/0/env/2/value
-                value: cert-manager
-              - op: replace
-                path: /spec/template/spec/containers/0/env/3/value
-                value: |
-                  apiVersion: rbac.authorization.k8s.io/v1
-                  kind: ClusterRole
-                  metadata:
-                    name: argocd-manager-certmanager
-                    labels:
-                      app.kubernetes.io/part-of: argo-jit-rbac
-                      jit-rbac/app: k8s-spb2-backend1-certmanager
-                  rules:
-                    - apiGroups: ["apiextensions.k8s.io"]
-                      resources: ["customresourcedefinitions"]
-                      verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
-                    - apiGroups: ["cert-manager.io"]
-                      resources: ["certificates", "certificaterequests", "issuers", "clusterissuers", "certificaterequests/status", "certificaterequests/finalizers", "certificates/status", "certificates/finalizers", "clusterissuers/status", "issuers/status"]
-                      verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
-                    - apiGroups: ["acme.cert-manager.io"]
-                      resources: ["orders", "orders/status", "orders/finalizers", "challenges", "challenges/status", "challenges/finalizers"]
-                      verbs: ["create", "delete", "get", "list", "watch", "update", "patch"]
-                    - apiGroups: ["certificates.k8s.io"]
-                      resources: ["certificatesigningrequests", "certificatesigningrequests/status"]
-                      verbs: ["get", "list", "watch", "update", "patch", "delete"]
-                    - apiGroups: ["certificates.k8s.io"]
-                      resources: ["signers"]
-                      verbs: ["sign", "delete"]
-                    - apiGroups: ["cert-manager.io"]
-                      resources: ["signers"]
-                      verbs: ["approve", "delete"]
-                    - apiGroups: ["gateway.networking.k8s.io"]
-                      resources: ["gateways", "gateways/finalizers", "httproutes", "httproutes/finalizers"]
-                      verbs: ["get", "list", "watch", "update", "patch", "delete"]
-                    - apiGroups: ["networking.k8s.io"]
-                      resources: ["ingresses", "ingresses/finalizers"]
-                      verbs: ["get", "list", "watch", "update", "patch", "delete"]
-                    - apiGroups: ["route.openshift.io"]
-                      resources: ["routes/custom-host"]
-                      verbs: ["create", "delete"]
-                    - apiGroups: ["admissionregistration.k8s.io"]
-                      resources: ["mutatingwebhookconfigurations", "validatingwebhookconfigurations"]
-                      verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
-                    - apiGroups: ["apps"]
-                      resources: ["deployments", "replicasets"]
-                      verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
-                    - apiGroups: [""]
-                      resources: ["serviceaccounts", "services", "configmaps", "secrets", "pods", "pods/log", "events"]
-                      verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
-                    - apiGroups: [""]
-                      resources: ["namespaces"]
-                      verbs: ["create", "get", "list", "watch", "delete"]
-                    - apiGroups: [""]
-                      resources: ["serviceaccounts/token"]
-                      verbs: ["create", "delete"]
-                    - apiGroups: ["rbac.authorization.k8s.io"]
-                      resources: ["clusterroles", "clusterrolebindings", "roles", "rolebindings"]
-                      verbs: ["get", "list", "create", "update", "patch", "delete", "bind", "escalate"]
-                    - apiGroups: ["authorization.k8s.io"]
-                      resources: ["subjectaccessreviews"]
-                      verbs: ["create", "delete"]
-                    - apiGroups: ["coordination.k8s.io"]
-                      resources: ["leases"]
-                      verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
-                    - apiGroups: ["batch"]
-                      resources: ["jobs"]
-                      verbs: ["create", "delete", "list", "get", "watch", "update"]
-                  ---
-                  apiVersion: rbac.authorization.k8s.io/v1
-                  kind: ClusterRoleBinding
-                  metadata:
-                    name: argocd-manager-certmanager
-                    labels:
-                      app.kubernetes.io/part-of: argo-jit-rbac
-                      jit-rbac/app: k8s-spb2-backend1-certmanager
-                  roleRef:
-                    apiGroup: rbac.authorization.k8s.io
-                    kind: ClusterRole
-                    name: argocd-manager-certmanager
-                  subjects:
-                    - kind: ServiceAccount
-                      name: argocd-manager
-                      namespace: kube-system
     # Source 3: Helm chart
     - repoURL: 'https://github.com/nomad-mrkn/charts.git'
       targetRevision: HEAD
