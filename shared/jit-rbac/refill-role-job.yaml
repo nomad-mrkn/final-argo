@@ -1,0 +1,87 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: PLACEHOLDER-refill-role
+  annotations:
+    argocd.argoproj.io/hook: PreDelete
+    argocd.argoproj.io/hook-delete-policy: HookFailed,BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "99"
+  labels:
+    app.kubernetes.io/part-of: argo-jit-rbac
+    jit-rbac/app: PLACEHOLDER
+spec:
+  ttlSecondsAfterFinished: 60
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: argo-jit-rbac
+        jit-rbac/app: PLACEHOLDER
+    spec:
+      serviceAccountName: jit-rbac-marker-PLACEHOLDER
+      restartPolicy: Never
+      containers:
+      - name: refill-role
+        image: bitnami/kubectl:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: JIT_RBAC_APP
+          value: PLACEHOLDER
+        - name: JIT_RBAC_TARGET_CLUSTERROLE
+          value: PLACEHOLDER_TARGET_CLUSTERROLE
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -euo pipefail
+            echo "========================================="
+            echo "Refilling ClusterRole rules for ${JIT_RBAC_APP}"
+            echo "Target ClusterRole: ${JIT_RBAC_TARGET_CLUSTERROLE}"
+            echo "Started at $(date -u +%FT%TZ)"
+            echo "========================================="
+
+            kubectl apply -f - <<EOF
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRole
+            metadata:
+              name: ${JIT_RBAC_TARGET_CLUSTERROLE}
+              labels:
+                app.kubernetes.io/part-of: argo-jit-rbac
+                jit-rbac/app: ${JIT_RBAC_APP}
+            rules:
+              - apiGroups: ["*"]
+                resources: ["*"]
+                verbs: ["*"]
+              - nonResourceURLs: ["*"]
+                verbs: ["*"]
+            EOF
+
+            kubectl apply -f - <<EOF
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: ${JIT_RBAC_TARGET_CLUSTERROLE}
+              labels:
+                app.kubernetes.io/part-of: argo-jit-rbac
+                jit-rbac/app: ${JIT_RBAC_APP}
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: ${JIT_RBAC_TARGET_CLUSTERROLE}
+            subjects:
+              - kind: ServiceAccount
+                name: argocd-manager
+                namespace: kube-system
+            EOF
+
+            kubectl label clusterrole "${JIT_RBAC_TARGET_CLUSTERROLE}" \
+              jit-rbac/sync-status=refilled \
+              --overwrite
+
+            kubectl label clusterrolebinding "${JIT_RBAC_TARGET_CLUSTERROLE}" \
+              jit-rbac/sync-status=refilled \
+              --overwrite
+
+            echo "========================================="
+            echo "ClusterRole ${JIT_RBAC_TARGET_CLUSTERROLE} refilled"
+            echo "Completed at $(date -u +%FT%TZ)"
+            echo "========================================="
