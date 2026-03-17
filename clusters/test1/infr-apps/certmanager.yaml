@@ -45,18 +45,6 @@ spec:
       jsonPointers:
         - /metadata/labels/jit-rbac~1sync-status
         - /metadata/annotations
-    - group: rbac.authorization.k8s.io
-      kind: ClusterRole
-      name: argocd-manager-certmanager-delete
-      jsonPointers:
-        - /metadata/labels/jit-rbac~1sync-status
-        - /metadata/annotations
-    - group: rbac.authorization.k8s.io
-      kind: ClusterRoleBinding
-      name: argocd-manager-certmanager-delete
-      jsonPointers:
-        - /metadata/labels/jit-rbac~1sync-status
-        - /metadata/annotations
   destination:
     name: kind-test-1
     namespace: cert-manager
@@ -66,7 +54,7 @@ spec:
       targetRevision: HEAD
       path: shared/jit-rbac-roles
       directory:
-        include: 'certmanager-role*.yaml'
+        include: certmanager-role.yaml
     # Source 2: Job wave 99
     - repoURL: 'https://github.com/nomad-mrkn/final-argo.git'
       targetRevision: HEAD
