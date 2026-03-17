@@ -31,8 +31,6 @@ spec:
           value: PLACEHOLDER
         - name: ARGOCD_MANAGER_DELETE_RBAC_NAME
           value: PLACEHOLDER-delete-rbac
-        - name: DELETE_MARKER_NAME
-          value: PLACEHOLDER-delete-marker
         - name: DELETE_ROLE_TEMPLATE_NAMESPACE
           value: PLACEHOLDER_NAMESPACE
         - name: DELETE_ROLE_TEMPLATE_CONFIGMAP_NAME
@@ -76,46 +74,6 @@ spec:
             subjects:
               - kind: ServiceAccount
                 name: argocd-manager
-                namespace: kube-system
-            ---
-            apiVersion: v1
-            kind: ServiceAccount
-            metadata:
-              name: ${DELETE_MARKER_NAME}
-              namespace: kube-system
-              labels:
-                app.kubernetes.io/part-of: argo-jit-rbac
-                jit-rbac/app: ${JIT_RBAC_APP}
-            ---
-            apiVersion: rbac.authorization.k8s.io/v1
-            kind: ClusterRole
-            metadata:
-              name: ${DELETE_MARKER_NAME}
-              labels:
-                app.kubernetes.io/part-of: argo-jit-rbac
-                jit-rbac/app: ${JIT_RBAC_APP}
-            rules:
-              - apiGroups: ["rbac.authorization.k8s.io"]
-                resources: ["clusterroles", "clusterrolebindings"]
-                verbs: ["get", "list", "patch", "update", "bind", "escalate"]
-              - apiGroups: [""]
-                resources: ["serviceaccounts"]
-                verbs: ["get", "list", "patch"]
-            ---
-            apiVersion: rbac.authorization.k8s.io/v1
-            kind: ClusterRoleBinding
-            metadata:
-              name: ${DELETE_MARKER_NAME}
-              labels:
-                app.kubernetes.io/part-of: argo-jit-rbac
-                jit-rbac/app: ${JIT_RBAC_APP}
-            roleRef:
-              apiGroup: rbac.authorization.k8s.io
-              kind: ClusterRole
-              name: ${DELETE_MARKER_NAME}
-            subjects:
-              - kind: ServiceAccount
-                name: ${DELETE_MARKER_NAME}
                 namespace: kube-system
             EOF_MANIFEST
 
