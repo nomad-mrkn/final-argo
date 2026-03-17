@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: k8s-spb2-backend1-certmanager
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
@@ -103,6 +105,55 @@ spec:
               - op: replace
                 path: /spec/template/spec/serviceAccountName
                 value: jit-rbac-marker-k8s-spb2-backend1-certmanager
+              - op: replace
+                path: /spec/template/spec/containers/0/env/0/value
+                value: k8s-spb2-backend1-certmanager
+          - target:
+              kind: ServiceAccount
+              name: jit-rbac-delete-marker-PLACEHOLDER
+            patch: |-
+              - op: replace
+                path: /metadata/name
+                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
+              - op: replace
+                path: /metadata/namespace
+                value: kube-system
+          - target:
+              kind: ClusterRole
+              name: jit-rbac-delete-marker-PLACEHOLDER
+            patch: |-
+              - op: replace
+                path: /metadata/name
+                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
+          - target:
+              kind: ClusterRoleBinding
+              name: jit-rbac-delete-marker-PLACEHOLDER
+            patch: |-
+              - op: replace
+                path: /metadata/name
+                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
+              - op: replace
+                path: /roleRef/name
+                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
+              - op: replace
+                path: /subjects/0/name
+                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
+              - op: replace
+                path: /subjects/0/namespace
+                value: kube-system
+          - target:
+              kind: Job
+              name: PLACEHOLDER-mark-deleted
+            patch: |-
+              - op: replace
+                path: /metadata/name
+                value: k8s-spb2-backend1-certmanager-mark-deleted
+              - op: replace
+                path: /metadata/namespace
+                value: kube-system
+              - op: replace
+                path: /spec/template/spec/serviceAccountName
+                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
               - op: replace
                 path: /spec/template/spec/containers/0/env/0/value
                 value: k8s-spb2-backend1-certmanager
