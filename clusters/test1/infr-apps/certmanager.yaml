@@ -57,7 +57,7 @@ spec:
       path: shared/jit-rbac-roles
       directory:
         include: certmanager-role.yaml
-    # Source 2: Generic hook resources and jobs
+    # Source 2: Hook jobs (PostSync / PreDelete / PostDelete)
     - repoURL: 'https://github.com/nomad-mrkn/final-argo.git'
       targetRevision: HEAD
       path: shared/jit-rbac
@@ -65,6 +65,28 @@ spec:
         commonLabels:
           jit-rbac/app: k8s-spb2-backend1-certmanager
         patches:
+          - target:
+              kind: Job
+              name: PLACEHOLDER-prepare-delete
+            patch: |-
+              - op: replace
+                path: /metadata/name
+                value: k8s-spb2-backend1-certmanager-prepare-delete
+              - op: replace
+                path: /metadata/namespace
+                value: kube-system
+              - op: replace
+                path: /spec/template/spec/serviceAccountName
+                value: argocd-manager
+              - op: replace
+                path: /spec/template/spec/containers/0/env/0/value
+                value: k8s-spb2-backend1-certmanager
+              - op: replace
+                path: /spec/template/spec/containers/0/env/1/value
+                value: argocd-manager-certmanager-delete
+              - op: replace
+                path: /spec/template/spec/containers/0/env/2/value
+                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
           - target:
               kind: ServiceAccount
               name: jit-rbac-marker-PLACEHOLDER
@@ -108,39 +130,6 @@ spec:
               - op: replace
                 path: /spec/template/spec/containers/0/env/0/value
                 value: k8s-spb2-backend1-certmanager
-          - target:
-              kind: ServiceAccount
-              name: jit-rbac-delete-marker-PLACEHOLDER
-            patch: |-
-              - op: replace
-                path: /metadata/name
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /metadata/namespace
-                value: kube-system
-          - target:
-              kind: ClusterRole
-              name: jit-rbac-delete-marker-PLACEHOLDER
-            patch: |-
-              - op: replace
-                path: /metadata/name
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-          - target:
-              kind: ClusterRoleBinding
-              name: jit-rbac-delete-marker-PLACEHOLDER
-            patch: |-
-              - op: replace
-                path: /metadata/name
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /roleRef/name
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /subjects/0/name
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /subjects/0/namespace
-                value: kube-system
           - target:
               kind: Job
               name: PLACEHOLDER-mark-deleted
