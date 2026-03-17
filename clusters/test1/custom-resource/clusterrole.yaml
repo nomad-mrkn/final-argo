@@ -68,6 +68,10 @@ rules:
   - apiGroups: ["batch"]
     resources: ["jobs", "cronjobs"]
     verbs: ["create", "delete", "list", "get", "watch", "update", "patch"]
+
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["create", "get", "list", "patch", "update", "watch"]
   
   - apiGroups: [""]
     resources: ["pods", "configmaps"]

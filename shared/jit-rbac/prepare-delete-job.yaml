@@ -1,0 +1,196 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: PLACEHOLDER-prepare-delete
+  namespace: PLACEHOLDER_NAMESPACE
+  annotations:
+    argocd.argoproj.io/hook: PreDelete
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
+  labels:
+    app.kubernetes.io/part-of: argo-jit-rbac
+    jit-rbac/app: PLACEHOLDER
+spec:
+  ttlSecondsAfterFinished: 60
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: argo-jit-rbac
+        jit-rbac/app: PLACEHOLDER
+    spec:
+      serviceAccountName: PLACEHOLDER_SERVICEACCOUNT
+      restartPolicy: Never
+      containers:
+      - name: prepare-delete
+        image: bitnami/kubectl:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: JIT_RBAC_APP
+          value: PLACEHOLDER
+        - name: ARGOCD_MANAGER_DELETE_RBAC_NAME
+          value: PLACEHOLDER-delete-rbac
+        - name: DELETE_MARKER_NAME
+          value: PLACEHOLDER-delete-marker
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -euo pipefail
+            echo "========================================="
+            echo "Preparing delete-time RBAC for ${JIT_RBAC_APP}"
+            echo "Started at $(date -u +%FT%TZ)"
+            echo "========================================="
+
+            kubectl apply -f - <<EOF_MANIFEST
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRole
+            metadata:
+              name: ${ARGOCD_MANAGER_DELETE_RBAC_NAME}
+              labels:
+                app.kubernetes.io/part-of: argo-jit-rbac
+                jit-rbac/app: ${JIT_RBAC_APP}
+            rules:
+              - apiGroups: ["apiextensions.k8s.io"]
+                resources: ["customresourcedefinitions"]
+                verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
+              - apiGroups: ["cert-manager.io"]
+                resources:
+                  - certificates
+                  - certificaterequests
+                  - issuers
+                  - clusterissuers
+                  - certificaterequests/status
+                  - certificaterequests/finalizers
+                  - certificates/status
+                  - certificates/finalizers
+                  - clusterissuers/status
+                  - issuers/status
+                verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
+              - apiGroups: ["acme.cert-manager.io"]
+                resources:
+                  - orders
+                  - orders/status
+                  - orders/finalizers
+                  - challenges
+                  - challenges/status
+                  - challenges/finalizers
+                verbs: ["create", "delete", "get", "list", "watch", "update", "patch"]
+              - apiGroups: ["certificates.k8s.io"]
+                resources:
+                  - certificatesigningrequests
+                  - certificatesigningrequests/status
+                verbs: ["get", "list", "watch", "update", "patch"]
+              - apiGroups: ["certificates.k8s.io"]
+                resources: ["signers"]
+                verbs: ["sign"]
+              - apiGroups: ["cert-manager.io"]
+                resources: ["signers"]
+                verbs: ["approve"]
+              - apiGroups: ["admissionregistration.k8s.io"]
+                resources:
+                  - mutatingwebhookconfigurations
+                  - validatingwebhookconfigurations
+                verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
+              - apiGroups: ["apps"]
+                resources:
+                  - deployments
+                  - replicasets
+                verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
+              - apiGroups: [""]
+                resources:
+                  - serviceaccounts
+                  - services
+                  - configmaps
+                  - secrets
+                  - pods
+                  - pods/log
+                  - events
+                verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
+              - apiGroups: [""]
+                resources: ["namespaces"]
+                verbs: ["create", "get", "list", "watch"]
+              - apiGroups: [""]
+                resources: ["serviceaccounts/token"]
+                verbs: ["create"]
+              - apiGroups: ["rbac.authorization.k8s.io"]
+                resources:
+                  - clusterroles
+                  - clusterrolebindings
+                verbs: ["bind", "get", "update", "patch", "create", "escalate", "list", "watch", "delete"]
+              - apiGroups: ["rbac.authorization.k8s.io"]
+                resources:
+                  - roles
+                  - rolebindings
+                verbs: ["get", "list", "create", "update", "patch", "delete"]
+              - apiGroups: ["authorization.k8s.io"]
+                resources: ["subjectaccessreviews"]
+                verbs: ["create"]
+              - apiGroups: ["coordination.k8s.io"]
+                resources: ["leases"]
+                verbs: ["create", "update", "patch", "get", "list", "watch", "delete"]
+              - apiGroups: ["batch"]
+                resources: ["jobs"]
+                verbs: ["create", "delete", "list", "get", "watch", "update"]
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: ${ARGOCD_MANAGER_DELETE_RBAC_NAME}
+              labels:
+                app.kubernetes.io/part-of: argo-jit-rbac
+                jit-rbac/app: ${JIT_RBAC_APP}
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: ${ARGOCD_MANAGER_DELETE_RBAC_NAME}
+            subjects:
+              - kind: ServiceAccount
+                name: argocd-manager
+                namespace: kube-system
+            ---
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              name: ${DELETE_MARKER_NAME}
+              namespace: kube-system
+              labels:
+                app.kubernetes.io/part-of: argo-jit-rbac
+                jit-rbac/app: ${JIT_RBAC_APP}
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRole
+            metadata:
+              name: ${DELETE_MARKER_NAME}
+              labels:
+                app.kubernetes.io/part-of: argo-jit-rbac
+                jit-rbac/app: ${JIT_RBAC_APP}
+            rules:
+              - apiGroups: ["rbac.authorization.k8s.io"]
+                resources: ["clusterroles", "clusterrolebindings"]
+                verbs: ["get", "list", "patch", "update", "bind", "escalate"]
+              - apiGroups: [""]
+                resources: ["serviceaccounts"]
+                verbs: ["get", "list", "patch"]
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: ${DELETE_MARKER_NAME}
+              labels:
+                app.kubernetes.io/part-of: argo-jit-rbac
+                jit-rbac/app: ${JIT_RBAC_APP}
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: ${DELETE_MARKER_NAME}
+            subjects:
+              - kind: ServiceAccount
+                name: ${DELETE_MARKER_NAME}
+                namespace: kube-system
+            EOF_MANIFEST
+
+            echo "========================================="
+            echo "Delete-time RBAC prepared for ${JIT_RBAC_APP}"
+            echo "Completed at $(date -u +%FT%TZ)"
+            echo "========================================="
