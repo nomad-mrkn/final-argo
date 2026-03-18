@@ -44,38 +44,39 @@ spec:
             echo "Started at $(date -u +%FT%TZ)"
             echo "========================================="
 
+            # Read ClusterRole template from ConfigMap
             DELETE_ROLE_TEMPLATE="$(kubectl get configmap "${DELETE_ROLE_TEMPLATE_CONFIGMAP_NAME}" \
               -n "${DELETE_ROLE_TEMPLATE_NAMESPACE}" \
               -o go-template='{{ index .data "delete-clusterrole.yaml" }}')"
 
             if [ -z "${DELETE_ROLE_TEMPLATE}" ]; then
-              echo "Delete role template is empty: ${DELETE_ROLE_TEMPLATE_NAMESPACE}/${DELETE_ROLE_TEMPLATE_CONFIGMAP_NAME}"
+              echo "Delete ClusterRole template is empty"
               exit 1
             fi
 
+            # Read ClusterRoleBinding template from ConfigMap
+            DELETE_BINDING_TEMPLATE="$(kubectl get configmap "${DELETE_ROLE_TEMPLATE_CONFIGMAP_NAME}" \
+              -n "${DELETE_ROLE_TEMPLATE_NAMESPACE}" \
+              -o go-template='{{ index .data "delete-clusterrolebinding.yaml" }}')"
+
+            if [ -z "${DELETE_BINDING_TEMPLATE}" ]; then
+              echo "Delete ClusterRoleBinding template is empty"
+              exit 1
+            fi
+
+            # Apply ClusterRole
             printf '%s\n' "${DELETE_ROLE_TEMPLATE}" \
               | sed \
                   -e "s|__JIT_RBAC_APP__|${JIT_RBAC_APP}|g" \
                   -e "s|__ARGOCD_MANAGER_DELETE_RBAC_NAME__|${ARGOCD_MANAGER_DELETE_RBAC_NAME}|g" \
               | kubectl apply -f -
 
-            kubectl apply -f - <<EOF_MANIFEST
-            apiVersion: rbac.authorization.k8s.io/v1
-            kind: ClusterRoleBinding
-            metadata:
-              name: ${ARGOCD_MANAGER_DELETE_RBAC_NAME}
-              labels:
-                app.kubernetes.io/part-of: argo-jit-rbac
-                jit-rbac/app: ${JIT_RBAC_APP}
-            roleRef:
-              apiGroup: rbac.authorization.k8s.io
-              kind: ClusterRole
-              name: ${ARGOCD_MANAGER_DELETE_RBAC_NAME}
-            subjects:
-              - kind: ServiceAccount
-                name: argocd-manager
-                namespace: kube-system
-            EOF_MANIFEST
+            # Apply ClusterRoleBinding
+            printf '%s\n' "${DELETE_BINDING_TEMPLATE}" \
+              | sed \
+                  -e "s|__JIT_RBAC_APP__|${JIT_RBAC_APP}|g" \
+                  -e "s|__ARGOCD_MANAGER_DELETE_RBAC_NAME__|${ARGOCD_MANAGER_DELETE_RBAC_NAME}|g" \
+              | kubectl apply -f -
 
             echo "========================================="
             echo "Delete-time RBAC prepared for ${JIT_RBAC_APP}"

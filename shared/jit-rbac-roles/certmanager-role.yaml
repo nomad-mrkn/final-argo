@@ -141,7 +141,7 @@ subjects:
     name: argocd-manager
     namespace: kube-system
 ---
-# ConfigMap with delete ClusterRole template (used by prepare-delete Job)
+# ConfigMap with delete RBAC templates (used by prepare-delete Job)
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -151,6 +151,22 @@ metadata:
     app.kubernetes.io/part-of: argo-jit-rbac
     jit-rbac/app: k8s-spb2-backend1-certmanager
 data:
+  delete-clusterrolebinding.yaml: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: __ARGOCD_MANAGER_DELETE_RBAC_NAME__
+      labels:
+        app.kubernetes.io/part-of: argo-jit-rbac
+        jit-rbac/app: __JIT_RBAC_APP__
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: __ARGOCD_MANAGER_DELETE_RBAC_NAME__
+    subjects:
+      - kind: ServiceAccount
+        name: argocd-manager
+        namespace: kube-system
   delete-clusterrole.yaml: |
     apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
