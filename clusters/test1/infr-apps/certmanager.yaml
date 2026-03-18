@@ -47,25 +47,6 @@ spec:
       jsonPointers:
         - /metadata/labels/jit-rbac~1sync-status
         - /metadata/annotations
-    - group: rbac.authorization.k8s.io
-      kind: ClusterRole
-      name: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-      jsonPointers:
-        - /metadata/labels/jit-rbac~1sync-status
-        - /metadata/annotations
-    - group: rbac.authorization.k8s.io
-      kind: ClusterRoleBinding
-      name: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-      jsonPointers:
-        - /metadata/labels/jit-rbac~1sync-status
-        - /metadata/annotations
-    - group: ""
-      kind: ServiceAccount
-      name: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-      namespace: kube-system
-      jsonPointers:
-        - /metadata/labels/jit-rbac~1sync-status
-        - /metadata/annotations
   destination:
     name: kind-test-1
     namespace: cert-manager
@@ -153,34 +134,6 @@ spec:
                 path: /spec/template/spec/containers/0/env/0/value
                 value: k8s-spb2-backend1-certmanager
           - target:
-              kind: ServiceAccount
-              name: jit-rbac-delete-marker-PLACEHOLDER
-              namespace: kube-system
-            patch: |-
-              - op: replace
-                path: /metadata/name
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-          - target:
-              kind: ClusterRole
-              name: jit-rbac-delete-marker-PLACEHOLDER
-            patch: |-
-              - op: replace
-                path: /metadata/name
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-          - target:
-              kind: ClusterRoleBinding
-              name: jit-rbac-delete-marker-PLACEHOLDER
-            patch: |-
-              - op: replace
-                path: /metadata/name
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /roleRef/name
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /subjects/0/name
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
-          - target:
               kind: Job
               name: PLACEHOLDER-mark-deleted
             patch: |-
@@ -188,8 +141,8 @@ spec:
                 path: /metadata/name
                 value: k8s-spb2-backend1-certmanager-mark-deleted
               - op: replace
-                path: /spec/template/spec/serviceAccountName
-                value: jit-rbac-delete-marker-k8s-spb2-backend1-certmanager
+                path: /metadata/namespace
+                value: kube-system
               - op: replace
                 path: /spec/template/spec/containers/0/env/0/value
                 value: k8s-spb2-backend1-certmanager
