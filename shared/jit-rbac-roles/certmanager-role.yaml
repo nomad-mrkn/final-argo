@@ -242,7 +242,7 @@ data:
         resources:
           - clusterroles
           - clusterrolebindings
-        verbs: ["get", "list", "patch"]
+        verbs: ["get", "list", "patch", "delete"]
       - apiGroups: ["rbac.authorization.k8s.io"]
         resources:
           - roles
