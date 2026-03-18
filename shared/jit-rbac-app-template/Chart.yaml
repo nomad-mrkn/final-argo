@@ -1,0 +1,5 @@
+apiVersion: v2
+name: jit-rbac-app-template
+description: Template for ArgoCD Application with JIT RBAC pattern
+version: 1.0.0
+type: application
