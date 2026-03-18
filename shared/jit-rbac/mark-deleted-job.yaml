@@ -6,7 +6,7 @@ metadata:
   namespace: PLACEHOLDER_NAMESPACE
   annotations:
     argocd.argoproj.io/hook: PostDelete
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
     argocd.argoproj.io/sync-wave: "90"
   labels:
     app.kubernetes.io/part-of: argo-jit-rbac
