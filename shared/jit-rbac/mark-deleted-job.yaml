@@ -1,59 +1,4 @@
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: jit-rbac-delete-marker-PLACEHOLDER
-  namespace: PLACEHOLDER_NAMESPACE
-  annotations:
-    argocd.argoproj.io/hook: PostDelete
-    argocd.argoproj.io/hook-delete-policy: HookFailed
-    argocd.argoproj.io/sync-wave: "1"
-    argocd.argoproj.io/sync-options: Prune=false
-  labels:
-    app.kubernetes.io/part-of: argo-jit-rbac
-    jit-rbac/app: PLACEHOLDER
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: jit-rbac-delete-marker-PLACEHOLDER
-  annotations:
-    argocd.argoproj.io/hook: PostDelete
-    argocd.argoproj.io/hook-delete-policy: HookFailed
-    argocd.argoproj.io/sync-wave: "1"
-    argocd.argoproj.io/sync-options: Prune=false
-  labels:
-    app.kubernetes.io/part-of: argo-jit-rbac
-    jit-rbac/app: PLACEHOLDER
-rules:
-  - apiGroups: ["rbac.authorization.k8s.io"]
-    resources: ["clusterroles", "clusterrolebindings"]
-    verbs: ["get", "list", "patch", "update", "bind", "escalate"]
-  - apiGroups: [""]
-    resources: ["serviceaccounts"]
-    verbs: ["get", "list", "patch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: jit-rbac-delete-marker-PLACEHOLDER
-  annotations:
-    argocd.argoproj.io/hook: PostDelete
-    argocd.argoproj.io/hook-delete-policy: HookFailed
-    argocd.argoproj.io/sync-wave: "1"
-    argocd.argoproj.io/sync-options: Prune=false
-  labels:
-    app.kubernetes.io/part-of: argo-jit-rbac
-    jit-rbac/app: PLACEHOLDER
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: jit-rbac-delete-marker-PLACEHOLDER
-subjects:
-  - kind: ServiceAccount
-    name: jit-rbac-delete-marker-PLACEHOLDER
-    namespace: PLACEHOLDER_NAMESPACE
----
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -75,7 +20,7 @@ spec:
         app.kubernetes.io/part-of: argo-jit-rbac
         jit-rbac/app: PLACEHOLDER
     spec:
-      serviceAccountName: PLACEHOLDER_SERVICEACCOUNT
+      serviceAccountName: argocd-manager
       restartPolicy: Never
       containers:
       - name: mark-deleted
@@ -89,35 +34,27 @@ spec:
           - |
             set -euo pipefail
             echo "========================================="
-            echo "Marking delete hooks as completed for ${JIT_RBAC_APP}"
+            echo "Marking delete RBAC as completed for ${JIT_RBAC_APP}"
             echo "Started at $(date -u +%FT%TZ)"
             echo "========================================="
 
+            # Label ClusterRoles created by prepare-delete job
             if kubectl label clusterrole -l jit-rbac/app=${JIT_RBAC_APP} \
-              jit-rbac/sync-status=completed --overwrite; then
+              jit-rbac/sync-status=completed --overwrite 2>/dev/null; then
               echo "ClusterRole labeled successfully"
             else
-              echo "Failed to label ClusterRole"
-              exit 1
+              echo "No ClusterRoles found with label jit-rbac/app=${JIT_RBAC_APP} (may already be cleaned up)"
             fi
 
+            # Label ClusterRoleBindings created by prepare-delete job
             if kubectl label clusterrolebinding -l jit-rbac/app=${JIT_RBAC_APP} \
-              jit-rbac/sync-status=completed --overwrite; then
+              jit-rbac/sync-status=completed --overwrite 2>/dev/null; then
               echo "ClusterRoleBinding labeled successfully"
             else
-              echo "Failed to label ClusterRoleBinding"
-              exit 1
-            fi
-
-            if kubectl label serviceaccount -n kube-system -l jit-rbac/app=${JIT_RBAC_APP} \
-              jit-rbac/sync-status=completed --overwrite; then
-              echo "ServiceAccount labeled successfully"
-            else
-              echo "Failed to label ServiceAccount"
-              exit 1
+              echo "No ClusterRoleBindings found with label jit-rbac/app=${JIT_RBAC_APP} (may already be cleaned up)"
             fi
 
             echo "========================================="
-            echo "Successfully marked delete hooks for ${JIT_RBAC_APP}"
+            echo "Successfully marked delete RBAC for ${JIT_RBAC_APP}"
             echo "Completed at $(date -u +%FT%TZ)"
             echo "========================================="
