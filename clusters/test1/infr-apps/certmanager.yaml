@@ -155,6 +155,7 @@ spec:
           - target:
               kind: ServiceAccount
               name: jit-rbac-delete-marker-PLACEHOLDER
+              namespace: kube-system
             patch: |-
               - op: replace
                 path: /metadata/name
