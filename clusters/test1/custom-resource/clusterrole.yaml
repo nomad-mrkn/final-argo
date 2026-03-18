@@ -11,6 +11,7 @@ rules:
     - customresourcedefinitions
     - daemonsets
     - deployments
+    - replicasets
     - statefulsets
     - verticalpodautoscalers
     - horizontalpodautoscalers
