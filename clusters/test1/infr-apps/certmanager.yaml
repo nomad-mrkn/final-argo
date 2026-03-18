@@ -57,7 +57,7 @@ spec:
       path: shared/jit-rbac-roles
       directory:
         include: certmanager-role.yaml
-    # Source 2: Hook jobs (PostSync / PreDelete / PostDelete)
+    # Source 2: Hook jobs (PostSync only - PreDelete hooks moved to jit-rbac-roles)
     - repoURL: 'https://github.com/nomad-mrkn/final-argo.git'
       targetRevision: HEAD
       path: shared/jit-rbac
@@ -65,31 +65,32 @@ spec:
         commonLabels:
           jit-rbac/app: k8s-spb2-backend1-certmanager
         patches:
-          - target:
-              kind: Job
-              name: PLACEHOLDER-prepare-delete
-            patch: |-
-              - op: replace
-                path: /metadata/name
-                value: k8s-spb2-backend1-certmanager-prepare-delete
-              - op: replace
-                path: /metadata/namespace
-                value: kube-system
-              - op: replace
-                path: /spec/template/spec/serviceAccountName
-                value: argocd-manager
-              - op: replace
-                path: /spec/template/spec/containers/0/env/0/value
-                value: k8s-spb2-backend1-certmanager
-              - op: replace
-                path: /spec/template/spec/containers/0/env/1/value
-                value: argocd-manager-certmanager-delete
-              - op: replace
-                path: /spec/template/spec/containers/0/env/2/value
-                value: cert-manager
-              - op: replace
-                path: /spec/template/spec/containers/0/env/3/value
-                value: jit-rbac-delete-template-k8s-spb2-backend1-certmanager
+          # Replaced by PreDelete ClusterRole/Binding in jit-rbac-roles/certmanager-role.yaml
+          # - target:
+          #     kind: Job
+          #     name: PLACEHOLDER-prepare-delete
+          #   patch: |-
+          #     - op: replace
+          #       path: /metadata/name
+          #       value: k8s-spb2-backend1-certmanager-prepare-delete
+          #     - op: replace
+          #       path: /metadata/namespace
+          #       value: kube-system
+          #     - op: replace
+          #       path: /spec/template/spec/serviceAccountName
+          #       value: argocd-manager
+          #     - op: replace
+          #       path: /spec/template/spec/containers/0/env/0/value
+          #       value: k8s-spb2-backend1-certmanager
+          #     - op: replace
+          #       path: /spec/template/spec/containers/0/env/1/value
+          #       value: argocd-manager-certmanager-delete
+          #     - op: replace
+          #       path: /spec/template/spec/containers/0/env/2/value
+          #       value: cert-manager
+          #     - op: replace
+          #       path: /spec/template/spec/containers/0/env/3/value
+          #       value: jit-rbac-delete-template-k8s-spb2-backend1-certmanager
           - target:
               kind: ServiceAccount
               name: jit-rbac-marker-PLACEHOLDER
@@ -133,19 +134,20 @@ spec:
               - op: replace
                 path: /spec/template/spec/containers/0/env/0/value
                 value: k8s-spb2-backend1-certmanager
-          - target:
-              kind: Job
-              name: PLACEHOLDER-mark-deleted
-            patch: |-
-              - op: replace
-                path: /metadata/name
-                value: k8s-spb2-backend1-certmanager-mark-deleted
-              - op: replace
-                path: /metadata/namespace
-                value: kube-system
-              - op: replace
-                path: /spec/template/spec/containers/0/env/0/value
-                value: k8s-spb2-backend1-certmanager
+          # No longer needed - HookSucceeded auto-cleans PreDelete resources
+          # - target:
+          #     kind: Job
+          #     name: PLACEHOLDER-mark-deleted
+          #   patch: |-
+          #     - op: replace
+          #       path: /metadata/name
+          #       value: k8s-spb2-backend1-certmanager-mark-deleted
+          #     - op: replace
+          #       path: /metadata/namespace
+          #       value: kube-system
+          #     - op: replace
+          #       path: /spec/template/spec/containers/0/env/0/value
+          #       value: k8s-spb2-backend1-certmanager
     # Source 3: Helm chart
     - repoURL: 'https://github.com/nomad-mrkn/charts.git'
       targetRevision: HEAD

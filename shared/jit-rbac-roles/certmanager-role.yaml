@@ -141,102 +141,118 @@ subjects:
     name: argocd-manager
     namespace: kube-system
 ---
-apiVersion: v1
-kind: ConfigMap
+# PreDelete ClusterRole - created before app deletion, auto-cleaned by HookSucceeded
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
-  name: jit-rbac-delete-template-k8s-spb2-backend1-certmanager
-  namespace: cert-manager
+  name: argocd-manager-certmanager-delete
+  annotations:
+    argocd.argoproj.io/hook: PreDelete
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
   labels:
     app.kubernetes.io/part-of: argo-jit-rbac
     jit-rbac/app: k8s-spb2-backend1-certmanager
-data:
-  delete-clusterrole.yaml: |
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRole
-    metadata:
-      name: __ARGOCD_MANAGER_DELETE_RBAC_NAME__
-      labels:
-        app.kubernetes.io/part-of: argo-jit-rbac
-        jit-rbac/app: __JIT_RBAC_APP__
-    rules:
-      - apiGroups: ["apiextensions.k8s.io"]
-        resources: ["customresourcedefinitions"]
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["cert-manager.io"]
-        resources:
-          - certificates
-          - certificaterequests
-          - issuers
-          - clusterissuers
-          - certificaterequests/status
-          - certificaterequests/finalizers
-          - certificates/status
-          - certificates/finalizers
-          - clusterissuers/status
-          - issuers/status
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["acme.cert-manager.io"]
-        resources:
-          - orders
-          - orders/status
-          - orders/finalizers
-          - challenges
-          - challenges/status
-          - challenges/finalizers
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["certificates.k8s.io"]
-        resources:
-          - certificatesigningrequests
-          - certificatesigningrequests/status
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["certificates.k8s.io"]
-        resources: ["signers"]
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["cert-manager.io"]
-        resources: ["signers"]
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["admissionregistration.k8s.io"]
-        resources:
-          - mutatingwebhookconfigurations
-          - validatingwebhookconfigurations
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["apps"]
-        resources:
-          - deployments
-          - replicasets
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: [""]
-        resources:
-          - serviceaccounts
-          - services
-          - configmaps
-          - secrets
-          - pods
-          - pods/log
-          - events
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: [""]
-        resources: ["namespaces"]
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: [""]
-        resources: ["serviceaccounts/token"]
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["rbac.authorization.k8s.io"]
-        resources:
-          - clusterroles
-          - clusterrolebindings
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["rbac.authorization.k8s.io"]
-        resources:
-          - roles
-          - rolebindings
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["authorization.k8s.io"]
-        resources: ["subjectaccessreviews"]
-        verbs: ["create"]
-      - apiGroups: ["coordination.k8s.io"]
-        resources: ["leases"]
-        verbs: ["get", "list", "delete", "update"]
-      - apiGroups: ["batch"]
-        resources: ["jobs"]
-        verbs: ["get", "list", "delete", "update"]
+rules:
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["cert-manager.io"]
+    resources:
+      - certificates
+      - certificaterequests
+      - issuers
+      - clusterissuers
+      - certificaterequests/status
+      - certificaterequests/finalizers
+      - certificates/status
+      - certificates/finalizers
+      - clusterissuers/status
+      - issuers/status
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["acme.cert-manager.io"]
+    resources:
+      - orders
+      - orders/status
+      - orders/finalizers
+      - challenges
+      - challenges/status
+      - challenges/finalizers
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["certificates.k8s.io"]
+    resources:
+      - certificatesigningrequests
+      - certificatesigningrequests/status
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["certificates.k8s.io"]
+    resources: ["signers"]
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["cert-manager.io"]
+    resources: ["signers"]
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources:
+      - mutatingwebhookconfigurations
+      - validatingwebhookconfigurations
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - replicasets
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: [""]
+    resources:
+      - serviceaccounts
+      - services
+      - configmaps
+      - secrets
+      - pods
+      - pods/log
+      - events
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: [""]
+    resources: ["serviceaccounts/token"]
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - clusterroles
+      - clusterrolebindings
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["authorization.k8s.io"]
+    resources: ["subjectaccessreviews"]
+    verbs: ["create"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "delete", "update"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "delete", "update"]
+---
+# PreDelete ClusterRoleBinding - binds delete role to argocd-manager
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argocd-manager-certmanager-delete
+  annotations:
+    argocd.argoproj.io/hook: PreDelete
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
+  labels:
+    app.kubernetes.io/part-of: argo-jit-rbac
+    jit-rbac/app: k8s-spb2-backend1-certmanager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argocd-manager-certmanager-delete
+subjects:
+  - kind: ServiceAccount
+    name: argocd-manager
+    namespace: kube-system
